@@ -1,0 +1,1970 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="읽은 책을 행성으로 기록하고 나만의 독서 우주를 넓혀보세요." />
+  <title>나만의 독서 우주</title>
+  
+  <!-- React 및 ReactDOM 불러오기 -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <!-- Babel (브라우저에서 JSX 컴파일) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    :root {
+      --ink: #f8fbff;
+      --muted: #94a4bc;
+      --soft: #c7d0df;
+      --line: #9aa8c429;
+      --panel: #0f162ad1;
+      --panel-strong: #131b32f5;
+      --night: #050816;
+      --night-soft: #090d20;
+      --indigo: #7769ff;
+      --violet: #a576ff;
+      --pink: #ff6cab;
+      --yellow: #ffd76a;
+      --danger: #ff8298;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html {
+      scroll-behavior: smooth;
+      background: var(--night);
+      min-width: 320px;
+    }
+    body {
+      background: var(--night);
+      color: var(--ink);
+      text-rendering: optimizelegibility;
+      margin: 0;
+      font-family: Pretendard Variable, Pretendard, Noto Sans KR, Apple SD Gothic Neo, Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif;
+    }
+    button, input, textarea {
+      font: inherit;
+    }
+    button {
+      color: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline-offset: 3px;
+      outline: 3px solid #a576ffb8;
+    }
+    .sr-only {
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      position: absolute;
+      overflow: hidden;
+    }
+    .app-shell {
+      background: radial-gradient(circle at 14% 8%, #7769ff26, transparent 26rem), 
+                  radial-gradient(circle at 85% 24%, #ff6cab17, transparent 23rem), 
+                  linear-gradient(#060919 0%, #050816 48%, #070a18 100%);
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+    .app-shell:before, .app-shell:after {
+      z-index: 0;
+      pointer-events: none;
+      content: "";
+      position: fixed;
+      inset: 0;
+    }
+    .app-shell:before {
+      opacity: .52;
+      background-image: radial-gradient(circle, #ffffffe6 0 1px, transparent 1.2px), 
+                        radial-gradient(circle, #a4b2ff8c 0 1px, transparent 1.2px);
+      background-position: 0 0, 36px 42px;
+      background-size: 78px 82px, 116px 124px;
+      -webkit-mask-image: linear-gradient(#000, transparent 76%);
+      mask-image: linear-gradient(#000, transparent 76%);
+    }
+    .app-shell:after {
+      background-color: transparent;
+      background-image: linear-gradient(90deg, transparent 0 49.8%, #8b98b809 50%, transparent 50.2%), 
+                        linear-gradient(0deg, transparent 0 49.8%, #8b98b808 50%, transparent 50.2%);
+      background-position: 0 0, 0 0;
+      background-repeat: repeat, repeat;
+      background-size: 92px 92px;
+      background-attachment: scroll, scroll;
+      background-origin: padding-box, padding-box;
+      background-clip: border-box, border-box;
+      -webkit-mask-image: linear-gradient(#000, transparent 44%);
+      mask-image: linear-gradient(#000, transparent 44%);
+    }
+    .site-header {
+      z-index: 50;
+      border-bottom: 1px solid var(--line);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+      background: #050816c2;
+      position: sticky;
+      top: 0;
+    }
+    .site-header__inner {
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      max-width: 1180px;
+      min-height: 76px;
+      margin: 0 auto;
+      padding: 12px 28px;
+      display: flex;
+    }
+    .brand {
+      color: var(--ink);
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      display: inline-flex;
+    }
+    .brand__mark {
+      color: #d9d3ff;
+      background: linear-gradient(145deg, #7769ff57, #ff6cab2e);
+      border: 1px solid #aba0ff6b;
+      border-radius: 15px;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      display: grid;
+      box-shadow: inset 0 1px #ffffff2b, 0 10px 32px #4738c233;
+    }
+    .brand strong, .brand small {
+      display: block;
+    }
+    .brand strong {
+      letter-spacing: -.02em;
+      font-size: 17px;
+    }
+    .brand small {
+      color: var(--muted);
+      margin-top: 3px;
+      font-size: 11px;
+    }
+    .header-actions, .backup-actions {
+      align-items: center;
+      display: flex;
+    }
+    .header-actions {
+      gap: 12px;
+    }
+    .backup-actions {
+      gap: 7px;
+    }
+    .distance-chip {
+      text-align: right;
+      min-width: 150px;
+      padding-right: 14px;
+    }
+    .distance-chip span, .distance-chip strong {
+      display: block;
+    }
+    .distance-chip span {
+      color: var(--muted);
+      letter-spacing: .08em;
+      font-size: 10px;
+    }
+    .distance-chip strong {
+      color: #d9d5ff;
+      margin-top: 2px;
+      font-size: 16px;
+    }
+    .icon-button {
+      border: 1px solid var(--line);
+      width: 40px;
+      height: 40px;
+      color: var(--soft);
+      cursor: pointer;
+      background: #ffffff0b;
+      border-radius: 12px;
+      place-items: center;
+      padding: 0;
+      transition: border-color .16s, background .16s, color .16s, transform .16s;
+      display: inline-grid;
+    }
+    .icon-button:hover {
+      color: #fff;
+      background: #7769ff21;
+      border-color: #a576ff7a;
+      transform: translateY(-1px);
+    }
+    .action-button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--soft);
+      transition: color .16s, transform .16s;
+      padding: 0;
+    }
+    .action-button:hover {
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .action-button .icon-wrapper {
+      border: 1px solid var(--line);
+      width: 40px;
+      height: 40px;
+      background: #ffffff0b;
+      border-radius: 12px;
+      place-items: center;
+      display: inline-grid;
+      transition: inherit;
+    }
+    .action-button:hover .icon-wrapper {
+      background: #7769ff21;
+      border-color: #a576ff7a;
+    }
+    .action-button span {
+      font-size: 10px;
+      letter-spacing: -0.02em;
+      font-weight: 500;
+    }
+    .content {
+      z-index: 2;
+      width: min(1180px, 100% - 56px);
+      margin: 0 auto;
+      padding: 42px 0 120px;
+      position: relative;
+    }
+    .storage-alert {
+      color: #ffd8df;
+      background: #5b182c59;
+      border: 1px solid #ff829847;
+      border-radius: 14px;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 18px;
+      padding: 13px 16px;
+      display: flex;
+    }
+    .storage-alert > span {
+      background: #ff82982e;
+      border-radius: 50%;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      font-weight: 800;
+      display: grid;
+    }
+    .storage-alert p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .rank-card {
+      background: linear-gradient(105deg, #131c35f5, #0d142ae6), #0e1426e6;
+      border: 1px solid #97a5c42e;
+      border-radius: 28px;
+      grid-template-columns: minmax(260px, .8fr) minmax(390px, 1.35fr) 150px;
+      align-items: center;
+      gap: 34px;
+      min-height: 255px;
+      padding: 36px 38px;
+      display: grid;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 1px #ffffff0d, 0 28px 80px #0000003d;
+    }
+    .rank-card:before {
+      content: "";
+      border: 1px solid #9184ff1f;
+      border-radius: 50%;
+      width: 420px;
+      height: 420px;
+      position: absolute;
+      top: -130px;
+      right: -100px;
+      box-shadow: 0 0 0 58px #7769ff06, 0 0 0 116px #7769ff05;
+    }
+    .eyebrow {
+      color: #9d91ff;
+      letter-spacing: .19em;
+      margin: 0 0 10px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .rank-card h1 {
+      color: #fff;
+      letter-spacing: -.045em;
+      margin: 0;
+      font-size: clamp(26px, 3vw, 39px);
+      font-weight: 760;
+      line-height: 1.25;
+      word-break: keep-all;
+    }
+    .rank-card h1 span {
+      color: #aeb9ce;
+      font-weight: 590;
+    }
+    .rank-console {
+      z-index: 1;
+      background: #0307146b;
+      border: 1px solid #99a4c526;
+      border-radius: 20px;
+      padding: 20px;
+      position: relative;
+    }
+    .rank-console__top, .rank-console__bottom {
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      display: flex;
+    }
+    .level-badge {
+      color: #bdb6ff;
+      letter-spacing: .12em;
+      background: #7769ff1f;
+      border: 1px solid #7769ff59;
+      border-radius: 8px;
+      padding: 6px 9px;
+      font-size: 9px;
+      font-weight: 800;
+    }
+    .rank-name {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 750;
+    }
+    .rank-track {
+      background: #9aa8c421;
+      border-radius: 99px;
+      height: 9px;
+      margin: 20px 0 12px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 2px #0006;
+    }
+    .rank-track__fill {
+      border-radius: inherit;
+      background: repeating-linear-gradient(-45deg, #ffffff21 0 7px, transparent 7px 14px), 
+                  linear-gradient(90deg, var(--indigo), var(--pink));
+      height: 100%;
+      transition: width .7s cubic-bezier(.2, .8, .2, 1);
+      box-shadow: 0 0 20px #8a6bff73;
+    }
+    .rank-console__bottom {
+      color: #748198;
+      font-size: 10px;
+    }
+    .rank-console__bottom strong {
+      color: #d2ccff;
+      font-size: 11px;
+    }
+    .rank-ship {
+      z-index: 1;
+      place-items: center;
+      min-height: 132px;
+      display: grid;
+      position: relative;
+    }
+    .rank-ship__glow {
+      filter: blur(30px);
+      background: #7769ff59;
+      border-radius: 50%;
+      width: 115px;
+      height: 115px;
+      animation: 3s ease-in-out infinite breathe;
+      position: absolute;
+    }
+    .rank-ship__body {
+      color: #fff;
+      background: linear-gradient(145deg, #8f7cff, #5f50e7 52%, #e4589c);
+      border: 1px solid #d6d0ff6b;
+      border-radius: 30px;
+      place-items: center;
+      width: 96px;
+      height: 96px;
+      display: grid;
+      position: relative;
+      transform: rotate(-7deg);
+      box-shadow: inset 0 1px 1px #ffffff73, 0 18px 42px #5543cd61;
+    }
+    .workspace {
+      grid-template-columns: minmax(0, 1fr) 320px;
+      align-items: start;
+      gap: 24px;
+      margin-top: 24px;
+      display: grid;
+    }
+    .universe-panel, .detail-panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      border-radius: 25px;
+      box-shadow: inset 0 1px #ffffff0a, 0 22px 64px #0003;
+    }
+    .universe-panel {
+      overflow: hidden;
+    }
+    .panel-heading {
+      border-bottom: 1px solid var(--line);
+      justify-content: space-between;
+      align-items: center;
+      min-height: 88px;
+      padding: 20px 24px;
+      display: flex;
+    }
+    .panel-heading .eyebrow {
+      margin-bottom: 5px;
+    }
+    .panel-heading h2 {
+      letter-spacing: -.025em;
+      margin: 0;
+      font-size: 20px;
+    }
+    .panel-heading > span {
+      color: var(--muted);
+      background: #ffffff0a;
+      border: 1px solid #a0abcb26;
+      border-radius: 99px;
+      padding: 7px 11px;
+      font-size: 11px;
+    }
+    .universe-field {
+      background: radial-gradient(circle at 28% 18%, #7769ff21, transparent 16rem), 
+                  radial-gradient(circle at 77% 70%, #ff6cab14, transparent 16rem), 
+                  linear-gradient(#040818b3, #060918e6);
+      min-height: 590px;
+      padding: 34px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .universe-field:before {
+      opacity: .75;
+      content: "";
+      background-image: radial-gradient(circle, #fff 0 .8px, transparent 1px), 
+                        radial-gradient(circle, #8ea7ff 0 .7px, transparent 1px);
+      background-position: 4px 5px, 34px 47px;
+      background-size: 67px 71px, 101px 109px;
+      position: absolute;
+      inset: 0;
+    }
+    .orbit {
+      pointer-events: none;
+      border: 1px solid #96a0c517;
+      border-radius: 50%;
+      position: absolute;
+      transform: rotate(-18deg);
+    }
+    .orbit--one {
+      width: 84%;
+      height: 55%;
+      top: 15%;
+      left: 8%;
+    }
+    .orbit--two {
+      width: 62%;
+      height: 64%;
+      bottom: -20%;
+      right: -10%;
+    }
+    .orbit--three {
+      width: 120%;
+      height: 80%;
+      top: -10%;
+      left: -10%;
+      border: 1px dashed #96a0c510;
+    }
+    .planet-grid {
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      padding: 40px 10px;
+      min-height: 512px;
+      position: relative;
+    }
+    .planet-card {
+      cursor: pointer;
+      background: 0 0;
+      border: 0;
+      border-radius: 24px;
+      place-items: center;
+      min-width: 0;
+      min-height: 190px;
+      padding: 12px 6px;
+      display: grid;
+      position: relative;
+      transition: border-color .18s, z-index 0s;
+    }
+    .planet-card:hover {
+      z-index: 50 !important;
+    }
+    
+    .planet-card__float {
+      min-width: 0;
+      animation: 4.2s ease-in-out infinite float;
+      animation-delay: var(--planet-delay);
+      flex-direction: column;
+      align-items: center;
+      transition: transform .18s;
+      display: flex;
+    }
+    .planet-card:hover .planet-card__float, .planet-card.is-selected .planet-card__float {
+      transform: scale(1.07);
+    }
+    .planet-card.is-selected {
+      background: radial-gradient(circle, #7769ff24, transparent 68%);
+    }
+    .planet {
+      --planet-size: 104px;
+      width: var(--planet-size);
+      height: var(--planet-size);
+      filter: drop-shadow(0 18px 24px #00000052);
+      place-items: center;
+      display: inline-grid;
+      position: relative;
+    }
+    .planet__body {
+      z-index: 2;
+      background: radial-gradient(circle at 32% 24%, #ffffff59, transparent 28%), 
+                  linear-gradient(145deg, color-mix(in srgb, var(--planet-color), white 12%), var(--planet-color) 57%, color-mix(in srgb, var(--planet-color), black 18%));
+      width: 100%;
+      height: 100%;
+      box-shadow: inset -14px -16px 24px #110e3133, 
+                  inset 10px 10px 18px #ffffff21, 
+                  0 0 30px color-mix(in srgb, var(--planet-color), transparent 72%);
+      border: 1px solid #ffffff59;
+      border-radius: 50%;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+    .planet__ring {
+      z-index: 1;
+      border: 5px solid color-mix(in srgb, var(--planet-accent), white 30%);
+      border-right-color: #ffffff9e;
+      border-left-color: color-mix(in srgb, var(--planet-accent), transparent 15%);
+      opacity: .8;
+      border-radius: 50%;
+      width: 142%;
+      height: 36%;
+      position: absolute;
+      transform: rotate(-15deg);
+    }
+    .planet__shine {
+      filter: blur(1px);
+      background: #ffffff42;
+      border-radius: 50%;
+      width: 34%;
+      height: 16%;
+      position: absolute;
+      top: 15%;
+      left: 20%;
+      transform: rotate(-24deg);
+    }
+    .planet__patch {
+      background: var(--planet-accent);
+      opacity: .35;
+      border-radius: 48% 52% 62% 38%;
+      position: absolute;
+    }
+    .planet__patch--one { width: 38%; height: 26%; top: 20%; right: -3%; transform: rotate(19deg); }
+    .planet__patch--two { width: 43%; height: 29%; bottom: 4%; left: 2%; transform: rotate(-12deg); }
+    
+    .planet__face {
+      z-index: 3;
+      justify-content: space-between;
+      width: 45%;
+      display: flex;
+      position: absolute;
+      top: 48%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .planet__eye {
+      background: #17203a;
+      border-radius: 50%;
+      width: 8px;
+      height: 10px;
+      box-shadow: inset 2px 2px #ffffff38;
+    }
+    .planet__smile {
+      border-bottom: 3px solid #17203a;
+      border-radius: 0 0 99px 99px;
+      width: 18px;
+      height: 10px;
+      position: absolute;
+      top: 11px;
+      left: 50%;
+      transform: translate(-50%);
+    }
+    .planet-label {
+      text-align: center;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      background: #080c1dd6;
+      border: 1px solid #9ba8c82b;
+      border-radius: 12px;
+      max-width: 142px;
+      margin-top: 12px;
+      padding: 8px 12px;
+      transition: border-color .18s;
+      display: block;
+      overflow: hidden;
+      box-shadow: 0 9px 24px #00000040;
+    }
+    .planet-card.is-selected .planet-label {
+      border-color: #ff6caba6;
+      box-shadow: 0 0 0 3px #ff6cab14;
+    }
+    .planet-label small, .planet-label strong {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+      overflow: hidden;
+    }
+    .planet-label small {
+      color: #df8bb7;
+      letter-spacing: .07em;
+      margin-bottom: 3px;
+      font-size: 9px;
+      font-weight: 800;
+    }
+    .planet-label strong {
+      color: #edf1fb;
+      font-size: 11px;
+      font-weight: 650;
+    }
+    .empty-universe {
+      z-index: 3;
+      text-align: center;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 520px;
+      display: flex;
+      position: relative;
+    }
+    .empty-universe__planet {
+      color: #978bdb;
+      background: #7769ff14;
+      border: 1px dashed #b2a9ff75;
+      border-radius: 50%;
+      place-items: center;
+      width: 88px;
+      height: 88px;
+      margin-bottom: 20px;
+      font-size: 28px;
+      display: grid;
+      box-shadow: 0 0 45px #7769ff24;
+    }
+    .empty-universe h3 {
+      letter-spacing: -.03em;
+      margin: 0;
+      font-size: 20px;
+    }
+    .empty-universe p {
+      max-width: 330px;
+      color: var(--muted);
+      margin: 10px 0 21px;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .detail-panel {
+      min-height: 520px;
+      padding: 28px;
+      position: sticky;
+      top: 100px;
+    }
+    .detail-panel__planet {
+      place-items: center;
+      min-height: 112px;
+      margin-bottom: 10px;
+      display: grid;
+    }
+    .detail-panel > .eyebrow {
+      text-align: center;
+      margin-bottom: 7px;
+    }
+    .detail-panel > h2 {
+      color: #fff;
+      text-align: center;
+      word-break: keep-all;
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.35;
+    }
+    .book-distance {
+      color: #f391c0;
+      text-align: center;
+      margin: 9px 0 12px;
+      font-size: 14px;
+      font-weight: 750;
+    }
+    .book-distance span {
+      color: #78869f;
+      margin-left: 7px;
+      font-size: 10px;
+      font-weight: 550;
+    }
+    .star-row {
+      justify-content: center;
+      gap: 4px;
+      min-height: 22px;
+      display: flex;
+    }
+    .star { color: #39445b; }
+    .star.is-filled {
+      color: var(--yellow);
+      filter: drop-shadow(0 0 6px #ffd76a59);
+    }
+    .review-card {
+      background: #04081575;
+      border: 1px solid #9aa8c421;
+      border-radius: 15px;
+      min-height: 118px;
+      margin-top: 22px;
+      padding: 15px;
+    }
+    .review-card span {
+      color: #7f8ca4;
+      letter-spacing: .12em;
+      font-size: 9px;
+      font-weight: 800;
+    }
+    .review-card p {
+      color: #c1cada;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 9px 0 0;
+      font-size: 12px;
+      line-height: 1.72;
+    }
+    .planet-fact {
+      background: #7769ff14;
+      border: 1px solid #7769ff2e;
+      border-radius: 14px;
+      gap: 9px;
+      margin-top: 12px;
+      padding: 13px;
+      display: flex;
+    }
+    .planet-fact > span { color: #b1a7ff; }
+    .planet-fact p {
+      color: #aeb8ca;
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.65;
+    }
+    .detail-actions {
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 20px;
+      display: grid;
+    }
+    .primary-button, .secondary-button, .danger-button {
+      cursor: pointer;
+      border-radius: 13px;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 10px 16px;
+      transition: transform .16s, filter .16s, border-color .16s, background .16s;
+      display: inline-flex;
+    }
+    .primary-button {
+      color: #fff;
+      background: linear-gradient(120deg, #7566f6, #a55fe1 56%, #e75a9e);
+      border: 1px solid #ccc3ff42;
+      font-size: 13px;
+      font-weight: 750;
+      box-shadow: 0 12px 30px #674bdc47;
+    }
+    .primary-button:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+    .primary-button--wide {
+      width: 100%;
+      min-height: 52px;
+      margin-top: 3px;
+      font-size: 14px;
+    }
+    .secondary-button, .danger-button {
+      border: 1px solid var(--line);
+      color: #c8d0df;
+      background: #ffffff0b;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .secondary-button:hover {
+      color: #fff;
+      background: #7769ff17;
+      border-color: #a576ff73;
+    }
+    .danger-button { color: #d79aa7; }
+    .danger-button:hover {
+      color: #ffafbd;
+      background: #ff5b7814;
+      border-color: #ff829866;
+    }
+    .danger-button--solid {
+      color: #fff;
+      background: linear-gradient(120deg, #c53959e6, #e14c70eb);
+      border-color: #ff829852;
+    }
+    .danger-button--solid:hover {
+      color: #fff;
+      background: linear-gradient(120deg, #d34868, #ec6483);
+      border-color: #ffbeca75;
+    }
+    .detail-empty {
+      color: #606d86;
+      text-align: center;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 450px;
+      display: flex;
+    }
+    .detail-empty h2 {
+      color: #b8c1d2;
+      margin: 16px 0 6px;
+      font-size: 18px;
+    }
+    .detail-empty p {
+      max-width: 220px;
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+    .floating-add {
+      z-index: 40;
+      color: #fff;
+      cursor: pointer;
+      background: linear-gradient(125deg, #7769ff, #9c62e9 55%, #ed5ca1);
+      border: 1px solid #e1d7ff4d;
+      border-radius: 18px;
+      align-items: center;
+      gap: 9px;
+      min-height: 54px;
+      padding: 0 19px;
+      transition: transform .18s, filter .18s;
+      display: inline-flex;
+      position: fixed;
+      bottom: 28px;
+      right: max(28px, 50vw - 590px);
+      box-shadow: 0 18px 42px #4730bb66, 0 0 28px #ff6cab24;
+    }
+    .floating-add span {
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .floating-add:hover {
+      filter: brightness(1.1);
+      transform: translateY(-3px);
+    }
+    .modal-backdrop {
+      z-index: 100;
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      background: #01030cc2;
+      place-items: center;
+      padding: 24px;
+      display: grid;
+      position: fixed;
+      inset: 0;
+      overflow-y: auto;
+    }
+    .modal {
+      background: #10172b;
+      border: 1px solid #a1aecf33;
+      border-radius: 25px;
+      width: min(480px, 100%);
+      max-height: calc(100vh - 48px);
+      animation: .22s cubic-bezier(.2, .9, .2, 1) modal-in;
+      overflow-y: auto;
+      box-shadow: inset 0 1px #ffffff0f, 0 32px 100px #0000008f;
+    }
+    .confirm-modal {
+      text-align: center;
+      background: #11182c;
+      border: 1px solid #ff829833;
+      border-radius: 24px;
+      width: min(390px, 100%);
+      padding: 30px;
+      animation: .22s cubic-bezier(.2, .9, .2, 1) modal-in;
+      box-shadow: inset 0 1px #ffffff0f, 0 32px 100px #0000008f;
+    }
+    .confirm-modal__icon {
+      color: #ff9baf;
+      background: #ff5b7817;
+      border: 1px solid #ff82983d;
+      border-radius: 17px;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      margin: 0 auto 17px;
+      display: grid;
+    }
+    .confirm-modal .eyebrow {
+      color: #ff91a6;
+      margin-bottom: 6px;
+    }
+    .confirm-modal__icon--restore {
+      color: #b5abff;
+      background: #7769ff1a;
+      border-color: #a576ff42;
+    }
+    .confirm-modal .confirm-modal__restore-eyebrow { color: #a99dff; }
+    
+    .confirm-modal h2 {
+      letter-spacing: -.03em;
+      margin: 0;
+      font-size: 21px;
+    }
+    .confirm-modal > p:not(.eyebrow) {
+      color: var(--muted);
+      margin: 11px auto 22px;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+    .confirm-modal__actions {
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      display: grid;
+    }
+    .modal__header {
+      border-bottom: 1px solid var(--line);
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 22px 24px 18px;
+      display: flex;
+    }
+    .modal__header .eyebrow { margin-bottom: 4px; }
+    .modal__header h2 {
+      letter-spacing: -.03em;
+      margin: 0;
+      font-size: 21px;
+    }
+    .book-form {
+      gap: 18px;
+      padding: 23px 24px 25px;
+      display: grid;
+    }
+    .book-form label, .book-form fieldset {
+      border: 0;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      position: relative;
+    }
+    .book-form label > span, .book-form legend {
+      color: #c6cedd;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .book-form label em {
+      color: #6f7c94;
+      margin-left: 4px;
+      font-size: 10px;
+      font-style: normal;
+    }
+    .book-form input, .book-form textarea {
+      color: #fff;
+      background: #0408159e;
+      border: 1px solid #9daac92e;
+      border-radius: 13px;
+      width: 100%;
+      transition: border-color .16s, box-shadow .16s;
+    }
+    .book-form input {
+      height: 48px;
+      padding: 0 14px;
+    }
+    .book-form textarea {
+      resize: vertical;
+      min-height: 92px;
+      padding: 13px 14px;
+      line-height: 1.6;
+    }
+    .book-form input::placeholder, .book-form textarea::placeholder { color: #56627a; }
+    .book-form input:focus, .book-form textarea:focus {
+      border-color: #8978ffb3;
+      outline: 0;
+      box-shadow: 0 0 0 3px #7769ff1a;
+    }
+    .book-form label > small {
+      color: #66738b;
+      font-size: 10px;
+    }
+    .book-form .character-count {
+      background: #070b1ab8;
+      border-radius: 6px;
+      padding: 2px 5px;
+      position: absolute;
+      bottom: 9px;
+      right: 10px;
+    }
+    .rating-input {
+      gap: 7px;
+      display: flex;
+    }
+    .rating-input button {
+      color: #3a465f;
+      cursor: pointer;
+      background: 0 0;
+      border: 0;
+      place-items: center;
+      width: 39px;
+      height: 39px;
+      padding: 0;
+      transition: color .14s, transform .14s;
+      display: grid;
+    }
+    .rating-input button[aria-checked=true] { color: var(--yellow); }
+    .rating-input button:has(~ button[aria-checked=true]) { color: var(--yellow); }
+    .rating-input button:hover {
+      color: #ffe28d;
+      transform: scale(1.08);
+    }
+    .toast {
+      z-index: 120;
+      pointer-events: none;
+      text-align: center;
+      width: min(90vw, 420px);
+      position: fixed;
+      bottom: 96px;
+      left: 50%;
+      transform: translate(-50%);
+    }
+    .toast span {
+      color: #e7eaff;
+      background: #141a30f5;
+      border: 1px solid #b4a9ff47;
+      border-radius: 12px;
+      padding: 11px 15px;
+      font-size: 12px;
+      animation: .2s ease-out toast-in;
+      display: inline-block;
+      box-shadow: 0 16px 40px #00000061;
+    }
+    .loading-screen {
+      background: radial-gradient(circle at 50% 42%, #7769ff29, transparent 18rem), var(--night);
+      color: #c8c2ff;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      display: flex;
+    }
+    .loading-screen__rocket { animation: 2s ease-in-out infinite float; }
+    .loading-screen p {
+      color: #8f9bb1;
+      margin-top: 14px;
+      font-size: 13px;
+    }
+    
+    @keyframes float {
+      0%, to { translate: 0; }
+      50% { translate: 0 -8px; }
+    }
+    @keyframes breathe {
+      0%, to { opacity: .58; scale: .92; }
+      50% { opacity: 1; scale: 1.08; }
+    }
+    @keyframes modal-in {
+      0% { opacity: 0; transform: translateY(12px) scale(.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes toast-in {
+      0% { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (width <= 980px) {
+      .rank-card { grid-template-columns: minmax(210px, .85fr) minmax(340px, 1.4fr); }
+      .rank-ship { display: none; }
+      .workspace { grid-template-columns: minmax(0, 1fr); }
+      .detail-panel { min-height: auto; position: static; }
+      .detail-panel:not(:has(.detail-empty)) {
+        grid-template-columns: 130px minmax(180px, .8fr) minmax(250px, 1.2fr);
+        align-items: center;
+        gap: 10px 22px;
+        display: grid;
+      }
+      .detail-panel__planet { grid-area: 1 / 1 / span 6; }
+      .detail-panel > .eyebrow, .detail-panel > h2, .book-distance, .detail-panel > .star-row {
+        text-align: left;
+        grid-column: 2;
+        justify-content: flex-start;
+      }
+      .detail-panel > .eyebrow { margin: 0; }
+      .detail-panel > h2 { text-align: left; }
+      .book-distance { margin: 0; }
+      .review-card {
+        grid-area: 1 / 3 / span 3;
+        min-height: 104px;
+        margin: 0;
+      }
+      .planet-fact { grid-column: 2 / span 2; }
+      .detail-actions {
+        grid-column: 2 / span 2;
+        margin-top: 2px;
+      }
+    }
+    @media (width <= 720px) {
+      .site-header__inner { min-height: 68px; padding: 10px 18px; }
+      .brand__mark { width: 42px; height: 42px; }
+      .brand small, .distance-chip span { display: none; }
+      .brand strong { font-size: 15px; }
+      .distance-chip { min-width: 0; padding-right: 0; }
+      .distance-chip strong { font-size: 13px; }
+      .backup-actions { display: none; }
+      .content { width: min(100% - 28px, 1180px); padding-top: 22px; }
+      .rank-card {
+        border-radius: 22px;
+        grid-template-columns: 1fr;
+        gap: 22px;
+        min-height: 0;
+        padding: 25px 22px;
+      }
+      .rank-card h1 { font-size: 27px; }
+      .rank-console { padding: 17px; }
+      .rank-console__bottom { grid-template-columns: 1fr auto; display: grid; }
+      .rank-console__bottom span:last-child { display: none; }
+      .workspace { gap: 16px; margin-top: 16px; }
+      .universe-panel, .detail-panel { border-radius: 21px; }
+      .panel-heading { min-height: 78px; padding: 17px 19px; }
+    .universe-field { min-height: 420px; padding: 26px 14px; }
+    .planet-grid {
+      padding: 20px 0;
+      gap: 10px;
+      min-height: 380px;
+    }
+    .planet-card { min-height: 170px; }
+    .planet-label { max-width: 120px; }
+      .empty-universe { min-height: 380px; padding: 20px; }
+      :is(.detail-panel, .detail-panel:not(:has(.detail-empty))) { padding: 24px; display: block; }
+      .detail-panel__planet { margin-bottom: 8px; display: grid; }
+      .detail-panel > .eyebrow, .detail-panel > h2, .book-distance { text-align: center; }
+      .detail-panel > .star-row { justify-content: center; }
+      .review-card { margin-top: 20px; }
+      .planet-fact { margin-top: 10px; }
+      .detail-actions { margin-top: 18px; }
+      .floating-add {
+        border-radius: 18px;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        min-height: 56px;
+        padding: 0;
+        bottom: 16px;
+        right: 16px;
+      }
+      .floating-add span { display: none; }
+      .modal-backdrop { place-items: end center; padding: 12px; }
+      .modal { border-radius: 23px 23px 18px 18px; max-height: calc(100vh - 24px); }
+      .modal__header { padding: 20px 20px 16px; }
+      .book-form { padding: 20px; }
+    }
+    @media (width <= 420px) {
+      .distance-chip { display: none; }
+      .rank-console__top { flex-direction: column; align-items: flex-start; }
+      .rank-console__bottom { grid-template-columns: 1fr; gap: 5px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, :before, :after {
+        scroll-behavior: auto !important;
+        transition-duration: .001ms !important;
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, Fragment } = React;
+
+    // --- Constants ---
+    const STORAGE_KEY = 'reading-universe.books.v2';
+    const formatter = new Intl.NumberFormat('ko-KR');
+    const DEFAULT_FORM_DATA = { title: '', pages: '', rating: 5, review: '' };
+
+    const RANKS = [
+      { level: 1, title: '종이비행기', minLy: 0, maxLy: 100, emoji: '✈️' },
+      { level: 2, title: '장난감 헬기', minLy: 101, maxLy: 250, emoji: '🚁' },
+      { level: 3, title: '작은 열기구', minLy: 251, maxLy: 450, emoji: '🎈' },
+      { level: 4, title: '푹신한 비행선', minLy: 451, maxLy: 700, emoji: '🛩️' },
+      { level: 5, title: '정찰용 드론', minLy: 701, maxLy: 1000, emoji: '🛸' },
+      { level: 6, title: '경비행기', minLy: 1001, maxLy: 1350, emoji: '🛫' },
+      { level: 7, title: '민간 여객기', minLy: 1351, maxLy: 1750, emoji: '✈️' },
+      { level: 8, title: '초음속 제트기', minLy: 1751, maxLy: 2200, emoji: '🚀' },
+      { level: 9, title: '대기권 돌파 로켓', minLy: 2201, maxLy: 2700, emoji: '☄️' },
+      { level: 10, title: '꼬마 스푸트니크', minLy: 2701, maxLy: 3250, emoji: '📡' },
+      { level: 11, title: '기상 관측 위성', minLy: 3251, maxLy: 3850, emoji: '🌦️' },
+      { level: 12, title: '통신 위성', minLy: 3851, maxLy: 4500, emoji: '📡' },
+      { level: 13, title: '우주 망원경', minLy: 4501, maxLy: 5200, emoji: '🔭' },
+      { level: 14, title: '알 모양 탐사선', minLy: 5201, maxLy: 5950, emoji: '🥚' },
+      { level: 15, title: '장난감 로켓', minLy: 5951, maxLy: 6750, emoji: '🚀' },
+      { level: 16, title: '쌍발 엔진 로켓', minLy: 6751, maxLy: 7600, emoji: '🚀' },
+      { level: 17, title: '궤도 정거장', minLy: 7601, maxLy: 8500, emoji: '🚉' },
+      { level: 18, title: '우주 호텔', minLy: 8501, maxLy: 9450, emoji: '🏨' },
+      { level: 19, title: '달 궤도선', minLy: 9451, maxLy: 10450, emoji: '🌕' },
+      { level: 20, title: '달 착륙선', minLy: 10451, maxLy: 11500, emoji: '🛬' },
+      { level: 21, title: '달 탐사 로버', minLy: 11501, maxLy: 12600, emoji: '🚙' },
+      { level: 22, title: '화성 궤도선', minLy: 12601, maxLy: 13750, emoji: '🔴' },
+      { level: 23, title: '화성 헬기', minLy: 13751, maxLy: 14950, emoji: '🚁' },
+      { level: 24, title: '화성 탐사 로버', minLy: 14951, maxLy: 16200, emoji: '🚜' },
+      { level: 25, title: '소행성 채굴선', minLy: 16201, maxLy: 17500, emoji: '⛏️' },
+      { level: 26, title: '목성 관측선', minLy: 17501, maxLy: 18850, emoji: '🪐' },
+      { level: 27, title: '토성 고리 유람선', minLy: 18851, maxLy: 20250, emoji: '💫' },
+      { level: 28, title: '천왕성 플라이바이', minLy: 20251, maxLy: 21700, emoji: '💨' },
+      { level: 29, title: '해왕성 심해 탐사선', minLy: 21701, maxLy: 23200, emoji: '🌊' },
+      { level: 30, title: '명왕성 정찰기', minLy: 23201, maxLy: 24750, emoji: '💙' },
+      { level: 31, title: '카이퍼 벨트 순찰선', minLy: 24751, maxLy: 26350, emoji: '☄️' },
+      { level: 32, title: '심우주 탐사선', minLy: 26351, maxLy: 28000, emoji: '🌌' },
+      { level: 33, title: '보이저 3호', minLy: 28001, maxLy: 29700, emoji: '🛸' },
+      { level: 34, title: '오르트 구름 개척선', minLy: 29701, maxLy: 31450, emoji: '☁️' },
+      { level: 35, title: '태양풍 돛단배', minLy: 31451, maxLy: 33250, emoji: '⛵' },
+      { level: 36, title: '이온 추진 크루저', minLy: 33251, maxLy: 35100, emoji: '🌠' },
+      { level: 37, title: '반물질 엔진함', minLy: 35101, maxLy: 37000, emoji: '🔮' },
+      { level: 38, title: '성간 순양함', minLy: 37001, maxLy: 38950, emoji: '🛳️' },
+      { level: 39, title: '항성간 방주', minLy: 38951, maxLy: 40950, emoji: '🚢' },
+      { level: 40, title: '워프 실험선', minLy: 40951, maxLy: 43000, emoji: '🌀' },
+      { level: 41, title: '차원 도약함', minLy: 43001, maxLy: 45100, emoji: '🌌' },
+      { level: 42, title: '은하 순찰대', minLy: 45101, maxLy: 47250, emoji: '🚓' },
+      { level: 43, title: '은하계 개척 모함', minLy: 47251, maxLy: 49450, emoji: '🌍' },
+      { level: 44, title: '초거대 항성 기지', minLy: 49451, maxLy: 51700, emoji: '🔆' },
+      { level: 45, title: '블랙홀 관측소', minLy: 51701, maxLy: 54000, emoji: '🕳️' },
+      { level: 46, title: '퀘이사 탐사선', minLy: 54001, maxLy: 56350, emoji: '🎇' },
+      { level: 47, title: '다중우주 유람선', minLy: 56351, maxLy: 58750, emoji: '🌈' },
+      { level: 48, title: '우주 시간 여행선', minLy: 58751, maxLy: 61200, emoji: '⏳' },
+      { level: 49, title: '빅뱅 관측자', minLy: 61201, maxLy: 63700, emoji: '💥' },
+      { level: 50, title: '우주 정복자', minLy: 63701, maxLy: Infinity, emoji: '👑' }
+    ];
+
+    const PLANET_TEMPLATES = [
+      { name: '수성', color: '#b9c3d3', accent: '#7f8da3', description: '태양과 가장 가까운, 작고 빠른 행성이에요.' },
+      { name: '금성', color: '#ffd86f', accent: '#e9a93a', description: '두꺼운 구름 이불을 덮은 아주 밝은 행성이에요.' },
+      { name: '지구', color: '#6cb8ff', accent: '#56d899', description: '푸른 바다와 생명이 숨 쉬는 우리의 고향이에요.' },
+      { name: '화성', color: '#ff8d77', accent: '#c9574e', description: '붉은 모래로 덮인 호기심 많은 탐험가의 행성이에요.' },
+      { name: '목성', color: '#e9b66b', accent: '#b56d45', description: '태양계에서 가장 크고 씩씩한 가스 행성이에요.' },
+      { name: '토성', color: '#f5d987', accent: '#cf9f42', description: '아름다운 고리를 두른 태양계의 멋쟁이예요.' },
+      { name: '천왕성', color: '#8fe8e7', accent: '#4cb8c4', description: '옆으로 누워 도는 독특한 하늘빛 얼음 행성이에요.' },
+      { name: '해왕성', color: '#5f8df7', accent: '#3153c8', description: '세찬 바람이 부는 깊고 푸른 행성이에요.' },
+      { name: '명왕성', color: '#d9d4cd', accent: '#9c9188', description: '커다란 하트 무늬를 품은 작고 다정한 친구예요.' }
+    ];
+
+    const EXTRA_CELESTIAL_BODIES = [
+      { name: '세레스', description: '화성과 목성 사이 소행성대에 위치한 가장 큰 왜소행성이에요.' },
+      { name: '유로파', description: '얼음 껍질 아래 거대한 바다가 숨겨져 있을지 모르는 목성의 위성이에요.' },
+      { name: '타이탄', description: '짙은 대기와 메탄 호수를 가진 신비로운 토성의 달이에요.' },
+      { name: '엔셀라두스', description: '남극에서 얼음 분수를 뿜어내는 토성의 아름다운 위성이에요.' },
+      { name: '에리스', description: '명왕성보다 질량이 큰, 태양계 외곽의 차가운 왜소행성이에요.' },
+      { name: '케플러-22b', description: '지구와 비슷한 온도를 가졌을 것으로 추측되는 슈퍼 지구예요.' },
+      { name: '프록시마 b', description: '태양계에서 가장 가까운 이웃 항성을 돌고 있는 외계 행성이에요.' },
+      { name: '트라피스트-1e', description: '지구와 비슷한 크기의 암석 행성으로, 생명체 거주 가능성이 높아요.' },
+      { name: '케플러-186f', description: '다른 별의 생명체 거주 가능 구역에서 발견된 최초의 지구 크기 행성이에요.' },
+      { name: '케플러-452b', description: '태양과 비슷한 별을 돌고 있는 지구의 사촌 같은 행성이에요.' },
+      { name: '글리제 581g', description: '골디락스 존에 위치하여 한때 생명체 존재 가능성으로 주목받은 행성이에요.' },
+      { name: '마케마케', description: '카이퍼 대에서 붉은빛을 띠며 태양을 도는 차가운 왜소행성이에요.' },
+      { name: '하우메아', description: '빠른 자전 때문에 럭비공 모양으로 납작해진 독특한 왜소행성이에요.' },
+      { name: '이오', description: '수많은 화산이 끊임없이 폭발하는, 태양계에서 가장 뜨거운 목성의 위성이에요.' },
+      { name: '가니메데', description: '수성보다 거대하며, 태양계 위성 중 유일하게 자기장을 가진 목성의 달이에요.' }
+    ];
+
+    // --- Helpers ---
+    function Icon({ name, size = 22, filled = false }) {
+      const paths = {
+        book: <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></>,
+        download: <><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></>,
+        edit: <><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></>,
+        plus: <><path d="M12 5v14"/><path d="M5 12h14"/></>,
+        rocket: <><path d="M9 15 5 11l3-3c3-3 7-4 11-4 0 4-1 8-4 11l-3 3-3-3z"/><path d="M9 15c0 1.5-1.5 3-3 3"/><path d="M4.5 16.5C3.3 17.5 3 20 3 20s2.5-.3 3.5-1.5"/><path d="M15 9h.01"/></>,
+        star: <polygon points="12 2 15.1 8.3 22 9.3 17 14.2 18.2 21 12 17.8 5.8 21 7 14.2 2 9.3 8.9 8.3 12 2" />,
+        trash: <><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 15H6L5 6"/><path d="M10 11v6M14 11v6"/></>,
+        trophy: <><path d="M8 21h8M12 17v4"/><path d="M7 4h10v6a5 5 0 0 1-10 0V4z"/><path d="M5 6H3v2a4 4 0 0 0 4 4M19 6h2v2a4 4 0 0 1-4 4"/></>,
+        upload: <><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 21h14"/></>,
+        x: <><path d="m18 6-12 12"/><path d="m6 6 12 12"/></>
+      };
+      
+      return (
+        <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          {paths[name]}
+        </svg>
+      );
+    }
+
+    function getPlanetTemplate(index) {
+      if (index < PLANET_TEMPLATES.length) return PLANET_TEMPLATES[index];
+      
+      const hue = Math.round((index * 137.508) % 360);
+      const extraIndex = index - PLANET_TEMPLATES.length;
+      
+      if (extraIndex < EXTRA_CELESTIAL_BODIES.length) {
+        const body = EXTRA_CELESTIAL_BODIES[extraIndex];
+        return {
+          name: body.name,
+          color: `hsl(${hue} 78% 68%)`,
+          accent: `hsl(${(hue + 58) % 360} 66% 47%)`,
+          description: body.description
+        };
+      }
+      
+      const loopIndex = extraIndex - EXTRA_CELESTIAL_BODIES.length;
+      return {
+        name: `심우주 항성계 X-${loopIndex + 1}`,
+        color: `hsl(${hue} 78% 68%)`,
+        accent: `hsl(${(hue + 58) % 360} 66% 47%)`,
+        description: '관측 가능한 우주 너머에서 새롭게 발견한 미지의 행성이에요.'
+      };
+    }
+
+    function parseBookData(data, index) {
+      if (!data || typeof data !== 'object') return null;
+      const title = typeof data.title === 'string' ? data.title.trim().slice(0, 100) : '';
+      const pages = Math.floor(Number(data.pages));
+      
+      if (!title || !Number.isFinite(pages) || pages < 1) return null;
+      
+      return {
+        id: typeof data.id === 'string' && data.id ? data.id : `restored-${Date.now()}-${index}`,
+        title,
+        pages: Math.min(pages, 100000),
+        rating: Math.min(5, Math.max(1, Math.round(Number(data.rating) || 5))),
+        review: typeof data.review === 'string' ? data.review.trim().slice(0, 500) : '',
+        createdAt: Number.isFinite(Number(data.createdAt)) ? Number(data.createdAt) : Date.now() + index,
+        planetIndex: Number.isFinite(Number(data.planetIndex)) ? Math.max(0, Math.floor(Number(data.planetIndex))) : index
+      };
+    }
+
+    function generateId() {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+      return `book-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    // --- Sub Components ---
+    function PlanetVisual({ book, compact = false }) {
+      const planet = getPlanetTemplate(book.planetIndex);
+      const size = compact ? 84 : Math.round(Math.max(82, Math.min(126, 72 + Math.sqrt(book.pages) * 2.2)));
+      
+      return (
+        <span 
+          className="planet" 
+          style={{ "--planet-color": planet.color, "--planet-accent": planet.accent, "--planet-size": `${size}px` }} 
+          aria-hidden="true"
+        >
+          {book.planetIndex % 5 === 0 && <span className="planet__ring" />}
+          <span className="planet__body">
+            <span className="planet__shine" />
+            <span className="planet__patch planet__patch--one" />
+            <span className="planet__patch planet__patch--two" />
+            <span className="planet__face">
+              <span className="planet__eye" />
+              <span className="planet__smile" />
+              <span className="planet__eye" />
+            </span>
+          </span>
+        </span>
+      );
+    }
+
+    function StarRow({ value }) {
+      return (
+        <span className="star-row" aria-label={`별점 ${value}점`}>
+          {[1, 2, 3, 4, 5].map(rating => (
+            <span key={rating} className={`star ${rating <= value ? 'is-filled' : ''}`}>
+              <Icon name="star" size={17} filled={rating <= value} />
+            </span>
+          ))}
+        </span>
+      );
+    }
+
+    // --- Main App Component ---
+    function App() {
+      const [books, setBooks] = useState([]);
+      const [isLoaded, setIsLoaded] = useState(false);
+      const [selectedId, setSelectedId] = useState(null);
+      
+      const [isModalOpen, setIsModalOpen] = useState(false);
+      const [editingId, setEditingId] = useState(null);
+      const [formData, setFormData] = useState(DEFAULT_FORM_DATA);
+      
+      const [toastMessage, setToastMessage] = useState("");
+      const [storageAlert, setStorageAlert] = useState("");
+      
+      const [bookToDelete, setBookToDelete] = useState(null);
+      const [backupToRestore, setBackupToRestore] = useState(null);
+      
+      const titleInputRef = useRef(null);
+      const fileInputRef = useRef(null);
+
+      // Load from LocalStorage
+      useEffect(() => {
+        const timer = window.setTimeout(() => {
+          try {
+            const rawData = window.localStorage.getItem(STORAGE_KEY);
+            if (rawData) {
+              const parsed = JSON.parse(rawData);
+              const booksArray = Array.isArray(parsed) ? parsed : (parsed && typeof parsed === 'object' && 'books' in parsed ? parsed.books : []);
+              const validBooks = Array.isArray(booksArray) ? booksArray.map((b, i) => parseBookData(b, i)).filter(b => b !== null) : [];
+              setBooks(validBooks);
+              setSelectedId(validBooks.at(-1)?.id ?? null);
+            }
+          } catch (e) {
+            setStorageAlert("기존 저장 기록을 읽지 못해 빈 우주로 시작했어요. 복원 파일이 있다면 불러올 수 있어요.");
+          } finally {
+            setIsLoaded(true);
+          }
+        }, 0);
+        return () => window.clearTimeout(timer);
+      }, []);
+
+      // Save to LocalStorage
+      useEffect(() => {
+        if (!isLoaded) return;
+        let errorMessage = "";
+        try {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 2, books }));
+        } catch (e) {
+          errorMessage = "브라우저 저장 공간에 기록하지 못했어요. JSON 백업을 내려받아 기록을 보관해 주세요.";
+        }
+        
+        const timer = window.setTimeout(() => {
+          setStorageAlert(prev => errorMessage || prev.startsWith("브라우저 저장 공간") ? errorMessage : prev);
+        }, 0);
+        
+        return () => window.clearTimeout(timer);
+      }, [books, isLoaded]);
+
+      // Toast auto-hide
+      useEffect(() => {
+        if (!toastMessage) return;
+        const timer = window.setTimeout(() => setToastMessage(""), 3200);
+        return () => window.clearTimeout(timer);
+      }, [toastMessage]);
+
+      // Keyboard Esc binding
+      useEffect(() => {
+        if (!isModalOpen && !bookToDelete && !backupToRestore) return;
+        
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        
+        const focusTimer = isModalOpen ? window.setTimeout(() => titleInputRef.current?.focus(), 40) : null;
+        
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') {
+            if (isModalOpen) setIsModalOpen(false);
+            else if (bookToDelete) setBookToDelete(null);
+            else if (backupToRestore) setBackupToRestore(null);
+          }
+        };
+        
+        window.addEventListener('keydown', handleKeyDown);
+        
+        return () => {
+          document.body.style.overflow = originalOverflow;
+          if (focusTimer !== null) window.clearTimeout(focusTimer);
+          window.removeEventListener('keydown', handleKeyDown);
+        };
+      }, [isModalOpen, bookToDelete, backupToRestore]);
+
+      // Calculations
+      const totalLy = useMemo(() => books.reduce((acc, b) => acc + Number(b.pages || 0), 0), [books]);
+      const currentRankIndex = useMemo(() => {
+        const idx = RANKS.findIndex(r => totalLy >= r.minLy && totalLy <= r.maxLy);
+        return idx < 0 ? RANKS.length - 1 : idx;
+      }, [totalLy]);
+      
+      const currentRank = RANKS[currentRankIndex];
+      const prevRank = currentRankIndex > 0 ? RANKS[currentRankIndex - 1] : null;
+      const nextRank = currentRankIndex < RANKS.length - 1 ? RANKS[currentRankIndex + 1] : null;
+      const rankProgress = nextRank ? Math.min(100, Math.max(0, ((totalLy - currentRank.minLy) / (nextRank.minLy - currentRank.minLy)) * 100)) : 100;
+      
+      const selectedBook = books.find(b => b.id === selectedId) ?? books.at(-1) ?? null;
+
+      // Handlers
+      const openNewBookModal = () => {
+        setEditingId(null);
+        setFormData(DEFAULT_FORM_DATA);
+        setIsModalOpen(true);
+      };
+
+      const openEditModal = (book) => {
+        setEditingId(book.id);
+        setFormData({ title: book.title, pages: String(book.pages), rating: book.rating, review: book.review });
+        setIsModalOpen(true);
+      };
+
+      const handleFormSubmit = (e) => {
+        e.preventDefault();
+        const title = formData.title.trim();
+        const pages = Math.floor(Number(formData.pages));
+        
+        if (!title || !Number.isFinite(pages) || pages < 1 || pages > 100000) {
+          setToastMessage("책 제목과 1~100,000 사이의 페이지 수를 확인해 주세요.");
+          return;
+        }
+        
+        if (editingId) {
+          setBooks(prev => prev.map(b => b.id === editingId ? {
+            ...b, 
+            title: title.slice(0, 100), 
+            pages, 
+            rating: formData.rating, 
+            review: formData.review.trim().slice(0, 500)
+          } : b));
+          setToastMessage("독서 기록을 수정했어요.");
+        } else {
+          const nextIndex = books.reduce((max, b) => Math.max(max, b.planetIndex), -1) + 1;
+          const newBook = {
+            id: generateId(),
+            title: title.slice(0, 100),
+            pages,
+            rating: formData.rating,
+            review: formData.review.trim().slice(0, 500),
+            createdAt: Date.now(),
+            planetIndex: nextIndex
+          };
+          setBooks(prev => [...prev, newBook]);
+          setSelectedId(newBook.id);
+          setToastMessage(`${getPlanetTemplate(nextIndex).name}이(가) 탄생했어요!`);
+        }
+        
+        setIsModalOpen(false);
+        setFormData(DEFAULT_FORM_DATA);
+        setEditingId(null);
+      };
+
+      const executeDelete = () => {
+        if (!bookToDelete) return;
+        const remaining = books.filter(b => b.id !== bookToDelete.id);
+        setBooks(remaining);
+        setSelectedId(remaining.at(-1)?.id ?? null);
+        setBookToDelete(null);
+        setToastMessage("독서 기록을 삭제했어요.");
+      };
+
+      const downloadBackup = () => {
+        const payload = JSON.stringify({
+          app: "나만의 독서 우주",
+          version: 2,
+          exportedAt: new Date().toISOString(),
+          books
+        }, null, 2);
+        
+        const blobUrl = URL.createObjectURL(new Blob([payload], { type: 'application/json' }));
+        const anchor = document.createElement('a');
+        anchor.href = blobUrl;
+        anchor.download = `독서-우주-백업-${new Date().toISOString().slice(0, 10)}.json`;
+        anchor.click();
+        URL.revokeObjectURL(blobUrl);
+        
+        setToastMessage("독서 우주 백업을 내려받았어요.");
+      };
+
+      const executeRestore = (backupBooks) => {
+        setBooks(backupBooks);
+        setSelectedId(backupBooks.at(-1)?.id ?? null);
+        setBackupToRestore(null);
+        setToastMessage(`${backupBooks.length}권의 독서 기록을 복원했어요.`);
+      };
+
+      const handleFileUpload = async (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (file) {
+          try {
+            const raw = await file.text();
+            const parsed = JSON.parse(raw);
+            const booksArray = parsed && typeof parsed === 'object' && 'books' in parsed ? parsed.books : parsed;
+            
+            if (!Array.isArray(booksArray)) throw new Error("Invalid backup");
+            
+            const validBooks = booksArray.map((b, i) => parseBookData(b, i)).filter(b => b !== null);
+            if (!validBooks.length && booksArray.length) throw new Error("Invalid records");
+            
+            if (books.length) {
+              setBackupToRestore(validBooks);
+            } else {
+              executeRestore(validBooks);
+            }
+          } catch {
+            setToastMessage("올바른 독서 우주 백업 파일인지 확인해 주세요.");
+          }
+        }
+      };
+
+      if (!isLoaded) {
+        return (
+          <main className="loading-screen" aria-live="polite">
+            <span className="loading-screen__rocket">
+              <Icon name="rocket" size={34} />
+            </span>
+            <p>독서 우주를 불러오는 중...</p>
+          </main>
+        );
+      }
+
+      return (
+        <main className="app-shell">
+          {/* Header */}
+          <header className="site-header">
+            <div className="site-header__inner">
+              <a className="brand" href="#top" aria-label="나만의 독서 우주 홈">
+                <span className="brand__mark">
+                  <Icon name="rocket" size={25} />
+                </span>
+                <span>
+                  <strong>나만의 독서 우주</strong>
+                  <small>한 권씩, 나만의 궤도를 그려요</small>
+                </span>
+              </a>
+              
+              <div className="header-actions">
+                <div className="distance-chip" aria-label={`총 ${totalLy} 광년`}>
+                  <span>총 비행 거리</span>
+                  <strong>{formatter.format(totalLy)} 광년</strong>
+                </div>
+                
+                <div className="backup-actions">
+                  <button type="button" className="action-button" onClick={downloadBackup} aria-label="독서 기록 백업 파일(JSON) 내려받기" title="현재 기기의 독서 기록을 백업 파일로 저장합니다.">
+                    <span className="icon-wrapper">
+                      <Icon name="download" size={19} />
+                    </span>
+                    <span>백업 저장</span>
+                  </button>
+                  <button type="button" className="action-button" onClick={() => fileInputRef.current?.click()} aria-label="기존 독서 기록 백업 파일(JSON) 불러오기" title="저장해둔 백업 파일을 불러와 현재 우주에 복원합니다.">
+                    <span className="icon-wrapper">
+                      <Icon name="upload" size={19} />
+                    </span>
+                    <span>백업 복원</span>
+                  </button>
+                  <input ref={fileInputRef} className="sr-only" type="file" accept="application/json,.json" onChange={handleFileUpload} tabIndex={-1} />
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <div id="top" className="content">
+            {/* Storage Alert */}
+            {storageAlert && (
+              <div className="storage-alert" role="alert">
+                <span>!</span>
+                <p>{storageAlert}</p>
+              </div>
+            )}
+
+            {/* Rank Card */}
+            <section className="rank-card" aria-labelledby="rank-title">
+              <div className="rank-card__intro">
+                <p className="eyebrow">SPACECRAFT PROGRESS</p>
+                <h1 id="rank-title">
+                  읽은 만큼 멀리,<br />
+                  <span>우주선은 계속 진화해요.</span>
+                </h1>
+              </div>
+              
+              <div className="rank-console">
+                <div className="rank-console__top">
+                  <span className="level-badge">LEVEL {currentRank.level} / {RANKS.length}</span>
+                  <span className="rank-name">{currentRank.title}</span>
+                </div>
+                <div className="rank-track" aria-hidden="true">
+                  <div className="rank-track__fill" style={{ width: `${rankProgress}%` }} />
+                </div>
+                <div className="rank-console__bottom">
+                  <span>{prevRank ? `이전 · ${prevRank.title}` : '첫 비행'}</span>
+                  <strong>{nextRank ? `${formatter.format(Math.max(0, nextRank.minLy - totalLy))} 광년 남음` : '최고 단계 달성'}</strong>
+                  <span>{nextRank ? `다음 · ${nextRank.title}` : '우주 정복!'}</span>
+                </div>
+              </div>
+              
+              <div className="rank-ship" aria-hidden="true">
+                <span className="rank-ship__glow" />
+                <span className="rank-ship__body" style={{ fontSize: '48px', textShadow: '0 4px 12px rgba(0,0,0,0.35)' }}>
+                  {currentRank.emoji}
+                </span>
+              </div>
+            </section>
+
+            {/* Main Workspace */}
+            <div className="workspace">
+              {/* Universe Panel */}
+              <section className="universe-panel" aria-labelledby="universe-title">
+                <div className="panel-heading">
+                  <div>
+                    <p className="eyebrow">MY CONSTELLATION</p>
+                    <h2 id="universe-title">나의 행성들</h2>
+                  </div>
+                  <span>{books.length}개의 행성</span>
+                </div>
+                
+                <div className="universe-field">
+                  <span className="orbit orbit--one" aria-hidden="true" />
+                  <span className="orbit orbit--two" aria-hidden="true" />
+                  <span className="orbit orbit--three" aria-hidden="true" />
+                  
+                  {books.length > 0 ? (
+                    <div className="planet-grid">
+                      {books.map((book, idx) => {
+                        const template = getPlanetTemplate(book.planetIndex);
+                        const isSelected = selectedBook?.id === book.id;
+                        
+                        // 인덱스 기반의 의사 난수(Pseudo-random) 생성으로 유기적인 은하계 배치
+                        const r1 = Math.abs(Math.sin(idx * 12.9898) * 43758.5453) % 1;
+                        const r2 = Math.abs(Math.cos(idx * 78.233) * 43758.5453) % 1;
+                        
+                        // 자연스러운 산개를 위한 X, Y 위치 오프셋 계산 (-30px ~ +30px 등)
+                        const translateX = (r1 - 0.5) * 50; 
+                        const translateY = (r2 - 0.5) * 70; 
+                        
+                        const margins = ['15px 25px', '35px 10px', '5px 40px', '40px 15px', '25px 5px'];
+                        const alignOpts = ['flex-start', 'center', 'flex-end', 'center'];
+                        
+                        return (
+                          <button 
+                            key={book.id} 
+                            type="button" 
+                            className={`planet-card${isSelected ? ' is-selected' : ''}`}
+                            style={{ 
+                              "--planet-delay": `${(idx % 6) * -0.42}s`,
+                              transform: `translate(${translateX}px, ${translateY}px)`,
+                              margin: margins[idx % 5],
+                              alignSelf: alignOpts[idx % 4],
+                              zIndex: isSelected ? 40 : 10 + (idx % 10)
+                            }}
+                            onClick={() => setSelectedId(book.id)}
+                            aria-pressed={isSelected}
+                            aria-label={`${template.name}, ${book.title}, ${book.pages}페이지`}
+                          >
+                            <span className="planet-card__float">
+                              <PlanetVisual book={book} />
+                              <span className="planet-label">
+                                <small>{template.name}</small>
+                                <strong>{book.title}</strong>
+                              </span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="empty-universe">
+                      <span className="empty-universe__planet" aria-hidden="true">?</span>
+                      <h3>아직 발견한 행성이 없어요</h3>
+                      <p>완독한 첫 책을 기록하면 이곳에 새로운 행성이 떠올라요.</p>
+                      <button type="button" className="primary-button" onClick={openNewBookModal}>
+                        <Icon name="plus" size={19} />첫 행성 만들기
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Detail Panel */}
+              <aside className="detail-panel" aria-live="polite">
+                {selectedBook ? (
+                  <Fragment>
+                    <div className="detail-panel__planet">
+                      <PlanetVisual book={selectedBook} compact={true} />
+                    </div>
+                    <p className="eyebrow">{getPlanetTemplate(selectedBook.planetIndex).name}</p>
+                    <h2>{selectedBook.title}</h2>
+                    <p className="book-distance">
+                      {formatter.format(selectedBook.pages)} 광년
+                      <span>{selectedBook.pages}페이지</span>
+                    </p>
+                    <StarRow value={selectedBook.rating} />
+                    
+                    <div className="review-card">
+                      <span>독서 메모</span>
+                      <p>{selectedBook.review || "아직 남긴 감상평이 없어요. 기억이 선명할 때 한 줄을 적어보세요."}</p>
+                    </div>
+                    
+                    <div className="planet-fact">
+                      <span aria-hidden="true">✦</span>
+                      <p>{getPlanetTemplate(selectedBook.planetIndex).description}</p>
+                    </div>
+                    
+                    <div className="detail-actions">
+                      <button type="button" className="secondary-button" onClick={() => openEditModal(selectedBook)}>
+                        <Icon name="edit" size={18} />수정
+                      </button>
+                      <button type="button" className="danger-button" onClick={() => setBookToDelete(selectedBook)}>
+                        <Icon name="trash" size={18} />삭제
+                      </button>
+                    </div>
+                  </Fragment>
+                ) : (
+                  <div className="detail-empty">
+                    <Icon name="book" size={34} />
+                    <h2>행성을 선택해 보세요</h2>
+                    <p>책과 감상평, 행성 이야기를 이곳에서 확인할 수 있어요.</p>
+                  </div>
+                )}
+              </aside>
+            </div>
+          </div>
+
+          {}
+          {/* Floating Action Button */}
+          <button type="button" className="floating-add" onClick={openNewBookModal} aria-label="새 독서 기록 추가">
+            <Icon name="plus" size={28} />
+            <span>책 기록</span>
+          </button>
+
+          {/* Book Form Modal */}
+          {isModalOpen && (
+            <div className="modal-backdrop" onMouseDown={(e) => e.currentTarget === e.target && setIsModalOpen(false)}>
+              <section className="modal" role="dialog" aria-modal="true" aria-labelledby="book-modal-title">
+                <div className="modal__header">
+                  <div>
+                    <p className="eyebrow">{editingId ? "EDIT LOG" : "NEW DISCOVERY"}</p>
+                    <h2 id="book-modal-title">{editingId ? "독서 기록 수정" : "새로운 행성 기록"}</h2>
+                  </div>
+                  <button type="button" className="icon-button" onClick={() => setIsModalOpen(false)} aria-label="창 닫기">
+                    <Icon name="x" />
+                  </button>
+                </div>
+                
+                <form className="book-form" onSubmit={handleFormSubmit}>
+                  <label>
+                    <span>다 읽은 책 제목</span>
+                    <input 
+                      ref={titleInputRef}
+                      required 
+                      maxLength={100} 
+                      value={formData.title} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="예: 어린 왕자" 
+                    />
+                  </label>
+                  
+                  <label>
+                    <span>총 페이지 수</span>
+                    <input 
+                      required 
+                      type="number" 
+                      inputMode="numeric" 
+                      min="1" 
+                      max="100000" 
+                      value={formData.pages} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, pages: e.target.value }))}
+                      placeholder="예: 350" 
+                    />
+                    <small>페이지 수가 많을수록 더 큰 행성이 탄생해요.</small>
+                  </label>
+                  
+                  <fieldset>
+                    <legend>책 별점</legend>
+                    <div className="rating-input" role="radiogroup" aria-label="책 별점">
+                      {[1, 2, 3, 4, 5].map(rating => (
+                        <button 
+                          key={rating}
+                          type="button" 
+                          role="radio" 
+                          aria-checked={formData.rating === rating} 
+                          aria-label={`${rating}점`}
+                          onClick={() => setFormData(prev => ({ ...prev, rating }))}
+                        >
+                          <Icon name="star" size={30} filled={rating <= formData.rating} />
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
+                  
+                  <label>
+                    <span>기억에 남는 감상평 <em>선택</em></span>
+                    <textarea 
+                      rows={3} 
+                      maxLength={500}
+                      value={formData.review}
+                      onChange={(e) => setFormData(prev => ({ ...prev, review: e.target.value }))}
+                      placeholder="오래 기억하고 싶은 문장이나 느낌을 남겨보세요."
+                    />
+                    <small className="character-count">{formData.review.length}/500</small>
+                  </label>
+                  
+                  <button className="primary-button primary-button--wide" type="submit">
+                    <Icon name={editingId ? "edit" : "rocket"} size={20} />
+                    {editingId ? "수정 내용 저장" : "행성 띄우기"}
+                  </button>
+                </form>
+              </section>
+            </div>
+          )}
+
+          {/* Delete Confirm Modal */}
+          {bookToDelete && (
+            <div className="modal-backdrop" onMouseDown={(e) => e.currentTarget === e.target && setBookToDelete(null)}>
+              <section className="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-title" aria-describedby="delete-description">
+                <span className="confirm-modal__icon" aria-hidden="true">
+                  <Icon name="trash" size={25} />
+                </span>
+                <p className="eyebrow">DELETE LOG</p>
+                <h2 id="delete-title">이 기록을 삭제할까요?</h2>
+                <p id="delete-description">“{bookToDelete.title}” 행성과 독서 메모가 이 기기에서 사라져요.</p>
+                <div className="confirm-modal__actions">
+                  <button type="button" className="secondary-button" onClick={() => setBookToDelete(null)}>취소</button>
+                  <button type="button" className="danger-button danger-button--solid" onClick={executeDelete}>
+                    <Icon name="trash" size={18} />기록 삭제
+                  </button>
+                </div>
+              </section>
+            </div>
+          )}
+
+          {/* Restore Confirm Modal */}
+          {backupToRestore && (
+            <div className="modal-backdrop" onMouseDown={(e) => e.currentTarget === e.target && setBackupToRestore(null)}>
+              <section className="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="restore-title" aria-describedby="restore-description">
+                <span className="confirm-modal__icon confirm-modal__icon--restore" aria-hidden="true">
+                  <Icon name="upload" size={25} />
+                </span>
+                <p className="eyebrow confirm-modal__restore-eyebrow">RESTORE LOG</p>
+                <h2 id="restore-title">백업 기록으로 교체할까요?</h2>
+                <p id="restore-description">현재 우주를 백업 파일의 {backupToRestore.length}권 기록으로 교체해요. 먼저 현재 기록을 내려받아 두면 더 안전해요.</p>
+                <div className="confirm-modal__actions">
+                  <button type="button" className="secondary-button" onClick={() => setBackupToRestore(null)}>취소</button>
+                  <button type="button" className="primary-button" onClick={() => executeRestore(backupToRestore)}>
+                    <Icon name="upload" size={18} />기록 교체
+                  </button>
+                </div>
+              </section>
+            </div>
+          )}
+
+          {/* Toast Notification */}
+          <div className="toast" role="status" aria-live="polite" aria-atomic="true">
+            {toastMessage && <span>{toastMessage}</span>}
+          </div>
+        </main>
+      );
+    }
+
+    const rootElement = document.getElementById("root");
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(<App />);
+  </script>
+</body>
+</html>
